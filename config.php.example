@@ -1,0 +1,8 @@
+<?php
+$bot->host = "localhost";
+$bot->port = "6667";
+$bot->nick = "slowbot";
+$bot->channels = array("#711chan", "#phpircd", "#fm");
+$bot->pass = "nickservpassword";
+$bot->oper = "";
+?>
