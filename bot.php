@@ -2,10 +2,8 @@
 <?php
 require_once("classes/bot.class.php");
 require_once("classes/vote.class.php");
-require_once("classes/shoutcast.class.php");
 $bot = new Bot();
 $vote = new voting('45');
-$shoutcast = new Shoutcast();
 
 //settings
 include("config.php");
@@ -26,7 +24,6 @@ $bot->addHook('!part','hooks/admin.hook.php', TRUE);
 $bot->addHook('!nick','hooks/admin.hook.php', TRUE);
 $bot->addHook('!restart','hooks/admin.hook.php', TRUE);
 $bot->addHook('!votestop','hooks/admin.hook.php', TRUE);
-$bot->addHook('!clrdj','hooks/admin.hook.php', TRUE);
 //fun
 $bot->addHook('same','$this->send("PRIVMSG $channel resame");');
 $bot->addHook('!figlet','hooks/figlet.hook.php',TRUE);
@@ -38,6 +35,7 @@ $bot->addHook('!vote','hooks/vote.hook.php',TRUE);
 
 //loop
 $bot->addLoopItem('include("loops/vote.loop.php");');
+
 $bot->connect();
 } else {
 sleep(3);
