@@ -18,9 +18,10 @@ var $loop;
 
 function init(){
     $this->socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-    socket_set_nonblock($this->socket);
 	socket_connect($this->socket, $this->host, $this->port);
+    socket_set_nonblock($this->socket);
 	$this->pid = pcntl_fork();
+    usleep(500);
 }
 
 function connect(){

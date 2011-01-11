@@ -11,7 +11,6 @@ include("config.php");
 //init
 $bot->parent = posix_getpid();
 $bot->init();
-
 //fork
 if($bot->pid){
 $bot->addHook('!help','hooks/help.hook.php', TRUE);
@@ -30,6 +29,7 @@ $bot->addHook('!figlet','hooks/figlet.hook.php',TRUE);
 $bot->addHook('!cowsay','hooks/cowsay.hook.php', TRUE);
 $bot->addHook('!hook','hooks/hook.hook.php', TRUE);
 $bot->addHook('!ascii','hooks/ascii.hook.php',TRUE);
+$bot->addHook('h','$this->send("PRIVMSG $channel h");');
 //vote
 $bot->addHook('!vote','hooks/vote.hook.php',TRUE);
 
