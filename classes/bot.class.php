@@ -305,7 +305,9 @@ function privmsg($channel, $message){
 
 function send($cmd, $output=TRUE){
 	$cmd = $cmd . "\r\n";
+    socket_set_block($this->socket);
 	socket_write($this->socket, $cmd);
+    socket_set_nonblock($this->socket);
 	if($output){
 		echo trim($cmd) . "\n";
 	}
