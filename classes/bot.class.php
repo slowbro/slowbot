@@ -315,7 +315,7 @@ function send($cmd, $output=TRUE){
 
 function isAdmin(){
 	global $channel;
-	if($this->sendnick == "slowbro" && $this->sendprefix == "t@kes.it.slow.bro"){
+	if($this->sendnick == "slowbro"){
 		return TRUE;
 	} else {
 		$this->send("PRIVMSG $this->target :$this->sendnick: sorry, you don't have access to that command.");

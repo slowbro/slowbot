@@ -13,34 +13,34 @@ $bot->parent = posix_getpid();
 $bot->init();
 //fork
 if($bot->pid){
-$bot->addHook('!help','hooks/help.hook.php', TRUE);
-//$bot->addHook('h','$this->send("PRIVMSG $channel h");');
-$bot->addHook('penis','$this->send("PRIVMSG $channel YES");');
-$bot->addHook('pump','$this->send("PRIVMSG $channel YES");');
-//admin
-$bot->addHook('!join','hooks/admin.hook.php', TRUE);
-$bot->addHook('!part','hooks/admin.hook.php', TRUE);
-$bot->addHook('!nick','hooks/admin.hook.php', TRUE);
-$bot->addHook('!restart','hooks/admin.hook.php', TRUE);
-$bot->addHook('!votestop','hooks/admin.hook.php', TRUE);
-//fun
-$bot->addHook('same','$this->send("PRIVMSG $channel resame");');
-$bot->addHook('!figlet','hooks/figlet.hook.php',TRUE);
-$bot->addHook('!cowsay','hooks/cowsay.hook.php', TRUE);
-$bot->addHook('!hook','hooks/hook.hook.php', TRUE);
-$bot->addHook('!ascii','hooks/ascii.hook.php',TRUE);
-$bot->addHook('h','$this->send("PRIVMSG $channel h");');
-//vote
-$bot->addHook('!vote','hooks/vote.hook.php',TRUE);
-
-//loop
-$bot->addLoopItem('include("loops/vote.loop.php");');
-
-$bot->connect();
+    $bot->addHook('!help','hooks/help.hook.php', TRUE);
+    //$bot->addHook('h','$this->privmsg($channel, "h");');
+    $bot->addHook('penis','$this->privmsg($channel, "YES");');
+    $bot->addHook('pump','$this->privmsg($channel, "YES");');
+    //admin
+    $bot->addHook('!join','hooks/admin.hook.php', TRUE);
+    $bot->addHook('!part','hooks/admin.hook.php', TRUE);
+    $bot->addHook('!nick','hooks/admin.hook.php', TRUE);
+    $bot->addHook('!restart','hooks/admin.hook.php', TRUE);
+    $bot->addHook('!votestop','hooks/admin.hook.php', TRUE);
+    //fun
+    $bot->addHook('same','$this->privmsg($channel, "resame");');
+    $bot->addHook('!figlet','hooks/figlet.hook.php',TRUE);
+    $bot->addHook('!cowsay','hooks/cowsay.hook.php', TRUE);
+    $bot->addHook('!hook','hooks/hook.hook.php', TRUE);
+    $bot->addHook('!ascii','hooks/ascii.hook.php',TRUE);
+    $bot->addHook('h','$this->privmsg($channel, "h");');
+    //vote
+    $bot->addHook('!vote','hooks/vote.hook.php',TRUE);
+    //loop
+    $bot->addLoopItem('include("loops/vote.loop.php");');
+    $bot->connect();
 } else {
 sleep(3);
 while(1){
-	$stat = `ps -p $bot->parent | grep bot.php`;
+    if(!$cf['input'])
+        break;
+	$stat = `ps -p {$bot->parent} | grep bot.php`;
 	if(empty($stat)){
 		$bsod = file("ascii/bsod.txt.speshul");
 		foreach($bot->_channels as $channel){

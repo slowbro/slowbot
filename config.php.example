@@ -1,8 +1,19 @@
 <?php
+// Server Info
 $bot->host = "localhost";
 $bot->port = "6667";
+
+// Nick & Nickserv Password
 $bot->nick = "slowbot";
-$bot->channels = array("#711chan", "#phpircd", "#fm");
 $bot->pass = "nickservpassword";
+
+// Channels to Join
+$bot->channels = array("#711chan", "#phpircd", "#fm");
+
+// Oper pass, if needed.
 $bot->oper = "";
+
+// Accept user input?
+$cf['input'] = true;
+
 ?>
