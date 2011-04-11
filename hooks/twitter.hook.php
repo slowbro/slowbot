@@ -4,8 +4,8 @@ include_once "lib/OAuthStore.php";
 include_once "lib/OAuthRequester.php";
 
 // register at http://twitter.com/oauth_clients and fill these two 
-define("TWITTER_CONSUMER_KEY", "chatnets");
-define("TWITTER_CONSUMER_SECRET", "7NoCOSIYfpsZ");
+define("TWITTER_CONSUMER_KEY", "user");
+define("TWITTER_CONSUMER_SECRET", "passwd");
 
 define("TWITTER_OAUTH_HOST","https://twitter.com");
 define("TWITTER_REQUEST_TOKEN_URL", TWITTER_OAUTH_HOST . "/oauth/request_token");
