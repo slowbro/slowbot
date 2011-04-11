@@ -13,6 +13,9 @@ $bot->channels = array("#711chan", "#phpircd", "#fm");
 // Oper pass, if needed.
 $bot->oper = "";
 
+// Bot Admins. Currently only nick-based.
+$bot->admins = array("serena", "slowbro");
+
 // Accept user input?
 $cf['input'] = true;
 

@@ -15,6 +15,7 @@ var $buffer;
 var $hooks = array();
 var $parent;
 var $loop;
+var $admins = array();
 
 function init(){
     $this->socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
@@ -313,9 +314,9 @@ function send($cmd, $output=TRUE){
 	}
 }
 
-function isAdmin(){
+function isAdmin($user){
 	global $channel;
-	if($this->sendnick == "slowbro"){
+	if(array_search($user, $this->admins) !== FALSE){
 		return TRUE;
 	} else {
 		$this->send("PRIVMSG $this->target :$this->sendnick: sorry, you don't have access to that command.");

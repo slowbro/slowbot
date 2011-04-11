@@ -14,7 +14,7 @@ $bot->init();
 //fork
 if($bot->pid){
     $bot->addHook('!help','hooks/help.hook.php', TRUE);
-    //$bot->addHook('h','$this->privmsg($channel, "h");');
+    $bot->addHook('h','$this->privmsg($channel, "h");');
     $bot->addHook('penis','$this->privmsg($channel, "YES");');
     $bot->addHook('pump','$this->privmsg($channel, "YES");');
     //admin
@@ -40,17 +40,8 @@ sleep(3);
 while(1){
     if(!$cf['input'])
         break;
-	$stat = `ps -p {$bot->parent} | grep bot.php`;
+	$stat = shell_exec("ps -p {$bot->parent} | grep bot.php");
 	if(empty($stat)){
-		$bsod = file("ascii/bsod.txt.speshul");
-		foreach($bot->_channels as $channel){
-			echo $channel;
-			foreach($bsod as $value){
-				$bot->privmsg($channel, $value);
-			}
-		}
-		print_r($bot->_channels);
-		
 		$bot->send("QUIT :ERROR:Parent died\n");
 		exit();
 	}
@@ -92,6 +83,16 @@ while(1){
 			$message = substr($in, $ln);
 			$bot->send("PRIVMSG $who :$message");
 			break;
+        
+            case 'help':
+            echo <<<EOM
+Slowbot help:
+/set chan <#chan> : set channel to send text to
+/nick <nick>: change nick
+/msg <who> <msg> : private message someone
+/quit : quit
+EOM;
+            break;
 			default:
 			echo "Unknown command: $ex[0]";
 			}

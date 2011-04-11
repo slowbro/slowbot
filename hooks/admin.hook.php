@@ -1,5 +1,5 @@
 <?php
-if($this->isAdmin()){
+if($this->isAdmin($this->sendnick)){
 switch($hook){
 
 case '!join':
