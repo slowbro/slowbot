@@ -14,7 +14,6 @@ $bot->init();
 //fork
 if($bot->pid){
     $bot->addHook('!help','hooks/help.hook.php', TRUE);
-    $bot->addHook('h','$this->privmsg($channel, "h");');
     $bot->addHook('penis','$this->privmsg($channel, "YES");');
     $bot->addHook('pump','$this->privmsg($channel, "YES");');
     //admin
@@ -30,6 +29,7 @@ if($bot->pid){
     $bot->addHook('!hook','hooks/hook.hook.php', TRUE);
     $bot->addHook('!ascii','hooks/ascii.hook.php',TRUE);
     $bot->addHook('h','$this->privmsg($channel, "h");');
+    $bot->addHook('!tweet','hooks/twitter.hook.php', TRUE);
     //vote
     $bot->addHook('!vote','hooks/vote.hook.php',TRUE);
     //loop
