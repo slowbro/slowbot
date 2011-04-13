@@ -314,9 +314,9 @@ function send($cmd, $output=TRUE){
 	}
 }
 
-function isAdmin($user){
+function isAdmin(){
 	global $channel;
-	if(array_search($user, $this->admins) !== FALSE){
+	if(array_search($this->sendnick, $this->admins) !== FALSE){
 		return TRUE;
 	} else {
 		$this->send("PRIVMSG $this->target :$this->sendnick: sorry, you don't have access to that command.");
