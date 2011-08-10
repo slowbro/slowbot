@@ -30,6 +30,7 @@ if($bot->pid){
     $bot->addHook('!ascii','hooks/ascii.hook.php',TRUE);
     $bot->addHook('h','$this->privmsg($channel, "h");');
     $bot->addHook('!tweet','hooks/twitter.hook.php', TRUE);
+    $bot->addRegexHook("/.*twitter.*/", '$this->privmsg($channel, "twitter sucks");');
     //vote
     $bot->addHook('!vote','hooks/vote.hook.php',TRUE);
     //loop

@@ -272,19 +272,29 @@ function parseOutput($command){
 		$this->message['1'] = $this->colorize($this->message['1']);
     echo "<\033[1;34m" . $this->sendnick . "@$this->target\033[0m> " . $this->message['1'] . "\033[0m\033[40m\n";
 
-   // believe it or not this method is faster than array_key_exists.
     foreach($this->_channels as $channel){
-                        foreach($this->hooks as $k => $v){
-                        $this->firstword = strtolower(substr($this->buffex['3'], 1));
-                        if($this->firstword == $k && $this->target == $channel){
-                        if($this->hooks[$k]['type'] == 'file'){
-                        $this->doHook($k, $channel, TRUE);
-                        } else {
-                        $this->doHook($k, $channel);
-                        }
-                        }
-                        }
+        foreach($this->hooks as $k => $v){
+            if(@$v['regex'] == true){
+                if(preg_match($v['trigger'], end(explode("PRIVMSG $this->target :", $this->buffer)))){
+                    if($v['type'] == 'file'){
+                        $this->doHook($v['trigger'], $channel, TRUE);
+                    } else {
+                        $this->doHook($v['trigger'], $channel);
+                    }
+                }
+            } else {
+                $this->firstword = strtolower(substr($this->buffex['3'], 1));
+                if($this->firstword == $v['trigger'] && $this->target == $channel){
+                    if($v['type'] == 'file'){
+                        $this->doHook($v['trigger'], $channel, TRUE);
+                    } else {
+                        $this->doHook($v['trigger'], $channel);
+                    }
+                }
+            }
+        }
     }
+
 	break;
 	
 	case 'QUIT':
@@ -328,54 +338,82 @@ function addLoopItem($ev){
 	$this->loop[] = $ev;
 }
 
+function deleteHook($com){
+    if(!($k = $this->hookExists($com))){
+        $this->send("PRIVMSG $channel :Hook $com does not exist.");
+    } else {
+        unset($this->hooks[$k]);
+        $this->send("PRIVMSG $channel :Hook $com deleted.");
+    }
+}
+
+function hookExists($com){
+    foreach($this->hooks as $k => $v){
+        if($v['trigger'] == $com)
+            return $k;
+    }   
+    return false;
+}
+
 function addHook($com, $file, $isfile=FALSE){
-	if(!array_key_exists($com,$this->hooks)){
-	$this->hooks[$com]['data'] = $file;
-	if($isfile){
-	$this->hooks[$com]['type'] = 'file';
-	} else {
-	$this->hooks[$com]['type'] = 'eval';
-	}
-	$this->hooks[$com]['status'] = 'enabled';
-	} else {
-	echo "ERROR: attempt to create hook \"$com\" failed: collision with pre-existing hook.\n";
-	}
+    $hook=array();
+    if(!$this->hookExists($com)){
+        $hook['trigger'] = $com;
+        $hook['data'] = $file;
+        if($isfile){
+            $hook['type'] = 'file';
+        } else {
+            $hook['type'] = 'eval';
+        }   
+        $hook['status'] = 'enabled';
+        $this->hooks[] = $hook;
+    } else {
+        echo "ERROR: attempt to create hook \"$com\" failed: collision with pre-existing hook.\n";
+        return false;
+    }
+    return true;
+}
+
+function addRegexHook($com, $file, $isfile=FALSE){
+    if($this->addHook($com, $file, $isfile))
+        $this->hooks[$this->hookExists($com)]['regex'] = TRUE;
 }
 
 function disableHook($hook, $channel){
-	if(array_key_exists($hook, $this->hooks)){
-		$this->hooks[$hook]['status'] = 'disabled';
-		$this->send("PRIVMSG $channel :Hook '$hook' disabled.");
-	} else {
-		$this->send("PRIVMSG $channel :Hook '$hook' does not exist.");
-	}
+    if(($k = $this->hookExists($hook))){
+        $this->hooks[$k]['status'] = 'disabled';
+        $this->send("PRIVMSG $channel :Hook '$hook' disabled.");
+    } else {
+        $this->send("PRIVMSG $channel :Hook '$hook' does not exist.");
+    }
 }
 
 function enableHook($hook, $channel){
-        if(array_key_exists($hook, $this->hooks)){
-                $this->hooks[$hook]['status'] = 'enabled';
+        if(($k = $this->hookExists($hook))){
+                $this->hooks[$k]['status'] = 'enabled';
                 $this->send("PRIVMSG $channel :Hook '$hook' enabled.");
         } else {
                 $this->send("PRIVMSG $channel :Hook '$hook' does not exist.");
         }
 }
 
-function doHook($hook, $channel, $file=FALSE){
-	if($this->hooks[$hook]['status'] == 'enabled'){
-		if(!$file){
-			try {
-				eval($this->hooks[$hook]['data']);
-			} catch(Exception $ex){
-				$this->privmsg($channel, "Caught exception: $ex");
-			}
-		} else {
-			try {
-				include($this->hooks[$hook]['data']);
-			} catch(Exception $ex){
-				$this->privmsg($channel, "Caught exception: $ex");
-			}
-		}
-	}
+function doHook($hook, $channel, $file=FALSE){ 
+    $k = $this->hookExists($hook);
+    if($this->hooks[$k]['status'] == 'enabled'){
+        if(!$file){
+            try {
+                eval($this->hooks[$k]['data']);
+            } catch(Exception $ex){
+                $this->privmsg($channel, "Caught exception: $ex");
+            }
+        } else {
+            try {
+                include($this->hooks[$k]['data']);
+            } catch(Exception $ex){
+                $this->privmsg($channel, "Caught exception: $ex");
+            }
+        }
+    }
 }
 
 function colorize($msg){
