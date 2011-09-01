@@ -310,14 +310,12 @@ function parseOutput($command){
 }
 
 function privmsg($channel, $message){
-	$cmd = "PRIVMSG $channel :$message";
-	$this->send($cmd);
+	$this->send("PRIVMSG $channel :$message");
 }
 
 function send($cmd, $output=TRUE){
-	$cmd = $cmd . "\r\n";
     socket_set_block($this->socket);
-	socket_write($this->socket, $cmd);
+	socket_write($this->socket, $cmd."\r\n");
     socket_set_nonblock($this->socket);
 	if($output){
 		echo trim($cmd) . "\n";

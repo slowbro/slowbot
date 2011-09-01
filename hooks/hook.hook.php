@@ -34,5 +34,18 @@ if(strtolower($this->buffex['6']) == "file"){
 }
 $what = explode($this->buffex['5']." ".$this->buffex['6']." ", $this->buffer);
 $this->addHook($this->buffex['5'], $what['1'], $bool);
+break;
+
+case 'addregex':
+if(!$this->isAdmin()){
+break;
+}
+if(strtolower($this->buffex['6']) == "file"){
+	$bool = (bool)TRUE;
+} else {
+	$bool = (bool)FALSE;
+}
+$what = explode($this->buffex['5']." ".$this->buffex['6']." ", $this->buffer);
+$this->addRegexHook($this->buffex['5'], $what['1'], $bool);
 }
 ?>
