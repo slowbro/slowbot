@@ -19,120 +19,122 @@ var $admins = array();
 
 function init(){
     $this->socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-	socket_connect($this->socket, $this->host, $this->port);
+    socket_connect($this->socket, $this->host, $this->port);
     socket_set_nonblock($this->socket);
-	$this->pid = pcntl_fork();
+    $this->pid = pcntl_fork();
     usleep(500);
 }
 
 function connect(){
-	if($this->socket){
-	$this->send("NICK $this->nick");
-	$this->send("USER $this->nick dix dix LIKES THE COCK");
-	while(true){
+    if($this->socket){
+    $this->send("NICK $this->nick");
+    $this->send("USER $this->nick dix dix LIKES THE COCK");
+    while(true){
         $reads = array($this->socket);
         if(socket_select($reads, $nul = null, $nul = null, 0) > 0){
-		$this->buffer = str_replace(array("\n","\r"), "", socket_read($this->socket, 1024, PHP_NORMAL_READ));
-		if(substr($this->buffer,0,6) == "PING :"){
-			$this->parseOutput("PING");
-        	        $this->send("PONG :".substr($this->buffer,6), FALSE);
-			echo " --> PONG\n";
+        $this->buffer = str_replace(array("\n","\r"), "", socket_read($this->socket, 1024, PHP_NORMAL_READ));
+        if(substr($this->buffer,0,6) == "PING :"){
+            $this->parseOutput("PING");
+                    $this->send("PONG :".substr($this->buffer,6), FALSE);
+            echo " --> PONG\n";
                 } else {
-		$this->buffex = explode(" ", $this->buffer);
-		$this->sender = substr($this->buffex['0'], 1);
-		$this->sendprefix = explode("!", $this->sender); $this->sendprefix = @$this->sendprefix['1'];
-		$this->sendnick = explode("!", $this->sender); $this->sendnick = @$this->sendnick['0'];
-		$this->command = @$this->buffex['1'];
-		$this->target = @$this->buffex['2'];
-		$this->parseOutput($this->command);
+        $this->buffex = explode(" ", $this->buffer);
+        $this->sender = substr($this->buffex['0'], 1);
+        $this->sendprefix = explode("!", $this->sender); $this->sendprefix = @$this->sendprefix['1'];
+        $this->sendnick = explode("!", $this->sender); $this->sendnick = @$this->sendnick['0'];
+        $this->command = @$this->buffex['1'];
+        $this->target = @$this->buffex['2'];
+        $this->parseOutput($this->command);
         }
         }
-		foreach($this->loop as $val){
-			@eval($val);
-		}
-		usleep(500);
-	}
-	echo "Retrying connection after 5 seconds...";
-	sleep(5);
-	include("bot.php");
-	posix_kill($this->pid, 9);
-	}
+        foreach($this->loop as $val){
+            @eval($val);
+        }
+        usleep(500);
+    }
+    echo "Retrying connection after 5 seconds...";
+    sleep(5);
+    include("bot.php");
+    posix_kill($this->pid, 9);
+    }
 }
 
 function addChannel($channel){
-	if(!in_array($channel, $this->_channels)){
-	$this->_channels[] = $channel;
-	}
+    if(!in_array($channel, $this->_channels)){
+    $this->_channels[] = $channel;
+    }
 }
 
 function removeChannel($channel){
         if(in_array($channel, $this->_channels)){
         $key = array_search($channel, $this->_channels);
-	unset($this->_channels[$key]);
-	}
+    unset($this->_channels[$key]);
+    }
 }
 
 
 function join($channel){
-	$this->send("JOIN $channel");
+    $this->send("JOIN $channel");
 }
 
 function parseOutput($command){
-	switch($command){
-	case '001':
-        case '002':
-	case '003':
-	case '251':
-	case '255':
-	case '265':
-	case '266':
-	$this->message = explode("$this->nick :", $this->buffer);
+    switch($command){
+    case '001':
+    case '002':
+    case '003':
+    case '251':
+    case '255':
+    case '265':
+    case '266':
+        $this->message = explode("$this->nick :", $this->buffer);
         echo "\033[1;35m*\033[0m " . $this->message['1'] . "\n";
         break;
 
-	case '376': //end of motd
-	case '422': //no motd error
-	$this->message = explode("$this->nick :", $this->buffer);
+    case '376': //end of motd
+    case '422': //no motd error
+        $this->message = explode("$this->nick :", $this->buffer);
         echo "\033[1;35m*\033[0m " . $this->message['1'] . "\n";
-	if(!empty($this->oper)){
-		$oper = explode(":", $this->oper);
-		$this->send("OPER $oper[0] $oper[1]");
-	}
-	if(!empty($this->pass)){
-		$this->send("PRIVMSG nickserv identify $this->pass");	
-	}
-	usleep(700);
-	foreach($this->channels as $channel){
-	$this->join($channel);
-	}
-	break;
+        if(!empty($this->oper)){
+            $oper = explode(":", $this->oper);
+            $this->send("OPER $oper[0] $oper[1]");
+        }
+        if(!empty($this->pass)){
+            $this->send("PRIVMSG nickserv identify $this->pass");   
+        }
+        usleep(700);
+        foreach($this->channels as $channel){
+            $this->join($channel);
+        }
+        break;
 
-        case '004':
-        case '005':
-	case '252':
-	case '253':
-	case '254':
-	case '366':
+    case '004':
+    case '005':
+    case '252':
+    case '253':
+    case '254':
+    case '366':
         $this->message = explode("$this->nick ", $this->buffer);
         echo "\033[1;35m*\033[0m " . $this->message['1'] . "\n";
         break;
-	case '332': //topic
-		$this->message = explode(" ", $this->buffer);
-		$topic = explode($this->message['3']." :", $this->buffer);
-		echo "\033[1;35m*\033[0m Topic for " . $this->message['3'] . ": " . $topic['1'] . "\n";
-	break;
-	case '333'; //topic set by
-		#:irc.711chan.org 333 slowbot #goodjob Frank 1277632322
-		$channel = $this->buffex['3'];
-		$user = $this->buffex['4'];
-		$when = date("M d, Y \a\\t H:i:s", $this->buffex['5']);
-		echo "\033[1;35m*\033[0m Topic set by ". $user . " on " . $when . "\n";
 
-	break;
-	case '353'; //names
+    case '332': //topic
+        $this->message = explode(" ", $this->buffer);
+        $topic = explode($this->message['3']." :", $this->buffer);
+        echo "\033[1;35m*\033[0m Topic for " . $this->message['3'] . ": " . $topic['1'] . "\n";
+        break;
+
+    case '333'; //topic set by
+        #:irc.711chan.org 333 slowbot #goodjob Frank 1277632322
+        $channel = $this->buffex['3'];
+        $user = $this->buffex['4'];
+        $when = date("M d, Y \a\\t H:i:s", $this->buffex['5']);
+        echo "\033[1;35m*\033[0m Topic set by ". $user . " on " . $when . "\n";
+        break;
+
+    case '353'; //names
         $msg = explode("353 $this->nick = ", $this->buffer);
         if(!isset($msg['1'])){ $msg = explode("353 $this->nick * ", $this->buffer);}
-	if(!isset($msg['1'])){ $msg = explode("353 $this->nick @ ", $this->buffer);}
+        if(!isset($msg['1'])){ $msg = explode("353 $this->nick @ ", $this->buffer);}
         $msg = explode(" :", $msg['1']);
         $channel = $msg['0'];
         $users = explode(" ", $msg['1']);
@@ -143,197 +145,196 @@ function parseOutput($command){
         $width = strlen($longest['0']);
         $users = array_pad($users, -(count($users)+1), 0);
         for($i=1;$i<count($users)-1;$i++){
-        if(($i%4) == "0" && $i != "0"){ //start a new row
-        $userlen = strlen($users[$i]);
-        $diff = $width - $userlen;
-        if($diff%2){
-        $left = floor($diff/2);
-        $right = $diff - $left;
-        } else {
-        $left = $diff/2;
-        $right = $diff/2;
-        }
-        echo "[ ";
-        for($o=0;$o<$left;$o++){
-        echo " ";
-        }
-        echo $users[$i];
-        for($o=0;$o<$right;$o++){
-        echo " ";
-        }
-        echo " ]\n";
-        } elseif($i == count($users)-2){
-        $userlen = strlen($users[$i]);
-        $diff = $width - $userlen;
-        if($diff%2){
-        $left = floor($diff/2);
-        $right = $diff - $left;
-        } else {
-        $left = $diff/2;
-        $right = $diff/2;
-	}
-        echo "[ ";
-        for($o=0;$o<$left;$o++){
-        echo " ";
-        }
-        echo $users[$i];
-        for($o=0;$o<$right;$o++){
-        echo " ";
-        }
-        echo " ]\n";
-
-        } else {
-        $userlen = strlen($users[$i]);
-        $diff = $width - $userlen;
-        if($diff%2 != "0"){
-        $left = floor($diff/2);
-        $right = $diff - $left;
-        } else {
-        $left = $diff/2;
-        $right = $diff/2;
-        }
-        echo "[ ";
-        for($o=0;$o<$left;$o++){
-        echo " ";
-        }
-        echo $users[$i];
-        for($o=0;$o<$right;$o++){
-        echo " ";
-        }
-        echo " ]";
-        }
-        }
-	break;
-	
-	case 'INVITE':
-	if($this->target == $this->nick){
-		$chan = $this->buffex['3'];
-		if(!empty($chan)){
-			if($chan[0] == ":"){
-				$chan = substr($chan, 1);
-			}
-			$this->join($chan);
-		}
-	}
-	break;
-	case 'JOIN':
-	$address = explode("!", $this->sender); $address = $address['1'];
-        $channel = substr($this->target, 1);
-	if($this->sendnick == $this->nick){ //we were forced to join a channel
-	$this->addChannel($channel);
-	}
-	echo "\033[0;32m--> $this->sendnick has joined $channel ($address)\033[0m\n";
-	break;
-	
-	case 'KICK':
-	if($this->buffex['3'] == $this->nick){
-		$this->removeChannel($this->target);
-	}
-	if(count($this->buffex) > 4){
-		$buf = $this->buffex;
-		for($i=0;$i<4;$i++){
-			unset($buf[$i]);
-		}
-		$message = implode(" ", $buf);
-		$message = ($message[0] == ":"?substr($message, 1):$message);
-	}
-	echo "\033[1;31m<-- $this->sendnick has kicked {$this->buffex['3']} from {$this->target}".(!empty($message)?" ($message)":"")."\033[0m\n";
-	break;
-	case 'NICK':
-	$newnick = substr($this->target, 1);
-	if($this->sendnick == $this->nick){//our nick was changed
-                $this->nick = $newnick;
-        }
-	echo "\033[1;34m$this->sendnick\033[0m is now known as \033[1;34m$newnick\033[0m\n";
-        break;
-	
-	case 'NOTICE':
-	if($this->target == "AUTH"){
-	$this->message = explode("NOTICE AUTH :", $this->buffer);
-	$this->message['1'] = $this->message['1'];
-	$this->sendnick = explode("!", $this->sender);
-        echo "\033[1;35m*\033[0m " . $this->message['1'] . "\n";
-	} elseif(@$this->buffex['3'] == ":***"){
-	$this->message = explode("$this->nick :", $this->buffer);
-	echo "\033[1;35m*\033[0m " . @$this->message['1'] . "\n";
-	} else {
-	$this->message = explode("$this->nick :", $this->buffer);
-	$this->sendnick = explode("!", $this->sender);
-	echo "\033[1;34m-\033[0;35m" . $this->sendnick['0'] . "\033[1;34m-\033[0m " . $this->message['1'] . "\n";
-	}
-	break;
-	
-	case 'PING':
-	echo "PING";
-	break;
-
-	case 'PRIVMSG':
-        $this->message = explode("PRIVMSG $this->target :", $this->buffer);
-		$this->message['1'] = $this->colorize($this->message['1']);
-    echo "<\033[1;34m" . $this->sendnick . "@$this->target\033[0m> " . $this->message['1'] . "\033[0m\033[40m\n";
-
-    foreach($this->_channels as $channel){
-        foreach($this->hooks as $k => $v){
-            if(@$v['regex'] == true){
-                if(preg_match($v['trigger'], end(explode("PRIVMSG $this->target :", $this->buffer)))){
-                    if($v['type'] == 'file'){
-                        $this->doHook($v['trigger'], $channel, TRUE);
-                    } else {
-                        $this->doHook($v['trigger'], $channel);
-                    }
+            if(($i%4) == "0" && $i != "0"){ //start a new row
+                $userlen = strlen($users[$i]);
+                $diff = $width - $userlen;
+                if($diff%2){
+                    $left = floor($diff/2);
+                    $right = $diff - $left;
+                } else {
+                    $left = $diff/2;
+                    $right = $diff/2;
                 }
+                echo "[ ";
+                for($o=0;$o<$left;$o++){
+                    echo " ";
+                }
+                echo $users[$i];
+                for($o=0;$o<$right;$o++){
+                    echo " ";
+                }
+                echo " ]\n";
+            } elseif($i == count($users)-2){
+                $userlen = strlen($users[$i]);
+                $diff = $width - $userlen;
+                if($diff%2){
+                    $left = floor($diff/2);
+                    $right = $diff - $left;
+                } else {
+                    $left = $diff/2;
+                    $right = $diff/2;
+                }
+                echo "[ ";
+                for($o=0;$o<$left;$o++){
+                    echo " ";
+                }
+                echo $users[$i];
+                for($o=0;$o<$right;$o++){
+                    echo " ";
+                }
+                echo " ]\n";
             } else {
-                $this->firstword = strtolower(substr($this->buffex['3'], 1));
-                if($this->firstword == $v['trigger'] && $this->target == $channel){
-                    if($v['type'] == 'file'){
-                        $this->doHook($v['trigger'], $channel, TRUE);
-                    } else {
-                        $this->doHook($v['trigger'], $channel);
+                $userlen = strlen($users[$i]);
+                $diff = $width - $userlen;
+                if($diff%2 != "0"){
+                    $left = floor($diff/2);
+                    $right = $diff - $left;
+                } else {
+                    $left = $diff/2;
+                    $right = $diff/2;
+                }
+                echo "[ ";
+                for($o=0;$o<$left;$o++){
+                    echo " ";
+                }
+                echo $users[$i];
+                for($o=0;$o<$right;$o++){
+                    echo " ";
+                }
+                echo " ]";
+            }
+        }
+        break;
+    
+    case 'INVITE':
+        if($this->target == $this->nick){
+            $chan = $this->buffex['3'];
+            if(!empty($chan)){
+                if($chan[0] == ":"){
+                    $chan = substr($chan, 1);
+                }
+                $this->join($chan);
+            }
+        }
+        break;
+
+    case 'JOIN':
+        $address = explode("!", $this->sender); $address = $address['1'];
+        $channel = substr($this->target, 1);
+        if($this->sendnick == $this->nick){ //we were forced to join a channel
+            $this->addChannel($channel);
+        }
+        echo "\033[0;32m--> $this->sendnick has joined $channel ($address)\033[0m\n";
+        break;
+    
+    case 'KICK':
+        if($this->buffex['3'] == $this->nick){
+            $this->removeChannel($this->target);
+        }
+        if(count($this->buffex) > 4){
+            $buf = $this->buffex;
+            for($i=0;$i<4;$i++){
+                unset($buf[$i]);
+            }
+            $message = implode(" ", $buf);
+            $message = ($message[0] == ":"?substr($message, 1):$message);
+        }
+        echo "\033[1;31m<-- $this->sendnick has kicked {$this->buffex['3']} from {$this->target}".(!empty($message)?" ($message)":"")."\033[0m\n";
+        break;
+
+    case 'NICK':
+        $newnick = substr($this->target, 1);
+        if($this->sendnick == $this->nick){//our nick was changed
+            $this->nick = $newnick;
+        }
+        echo "\033[1;34m$this->sendnick\033[0m is now known as \033[1;34m$newnick\033[0m\n";
+        break;
+    
+    case 'NOTICE':
+        if($this->target == "AUTH"){
+            $this->message = explode("NOTICE AUTH :", $this->buffer);
+            $this->message['1'] = $this->message['1'];
+            $this->sendnick = explode("!", $this->sender);
+            echo "\033[1;35m*\033[0m " . $this->message['1'] . "\n";
+        } elseif(@$this->buffex['3'] == ":***"){
+            $this->message = explode("$this->nick :", $this->buffer);
+            echo "\033[1;35m*\033[0m " . @$this->message['1'] . "\n";
+        } else {
+            $this->message = explode("$this->nick :", $this->buffer);
+            $this->sendnick = explode("!", $this->sender);
+            echo "\033[1;34m-\033[0;35m" . $this->sendnick['0'] . "\033[1;34m-\033[0m " . $this->message['1'] . "\n";
+        }
+        break;
+    
+    case 'PING':
+        echo "PING";
+        break;
+
+    case 'PRIVMSG':
+        $this->message = explode("PRIVMSG $this->target :", $this->buffer);
+        $this->message['1'] = $this->colorize($this->message['1']);
+        echo "<\033[1;34m" . $this->sendnick . "@$this->target\033[0m> " . $this->message['1'] . "\033[0m\033[40m\n";
+        foreach($this->_channels as $channel){
+            foreach($this->hooks as $k => $v){
+                if(@$v['regex'] == true){
+                    if(preg_match($v['trigger'], end(explode("PRIVMSG $this->target :", $this->buffer)))){
+                        if($v['type'] == 'file'){
+                            $this->doHook($v['trigger'], $channel, TRUE);
+                        } else {
+                            $this->doHook($v['trigger'], $channel);
+                        }
+                    }
+                } else {
+                    $this->firstword = strtolower(substr($this->buffex['3'], 1));
+                    if($this->firstword == $v['trigger'] && $this->target == $channel){
+                        if($v['type'] == 'file'){
+                            $this->doHook($v['trigger'], $channel, TRUE);
+                        } else {
+                            $this->doHook($v['trigger'], $channel);
+                        }
                     }
                 }
             }
         }
-    }
-
-	break;
-	
-	case 'QUIT':
+        break;
+    
+    case 'QUIT':
         $address = explode("!", $this->sender); $address = $address['1'];
         echo "\033[1;31m<-- $this->sendnick has quit ($address)\033[0m\n";
-	break;
-	
-	default:
-	if(!empty($this->buffer)){
-	echo $this->buffer . "\n";
-	}
-	}
+        break;
+    
+    default:
+        if(!empty($this->buffer)){
+            echo $this->buffer . "\n";
+        }
+    } // END CASE
 }
 
 function privmsg($channel, $message){
-	$this->send("PRIVMSG $channel :$message");
+    $this->send("PRIVMSG $channel :$message");
 }
 
 function send($cmd, $output=TRUE){
     socket_set_block($this->socket);
-	socket_write($this->socket, $cmd."\r\n");
+    socket_write($this->socket, $cmd."\r\n");
     socket_set_nonblock($this->socket);
-	if($output){
-		echo trim($cmd) . "\n";
-	}
+    if($output){
+        echo trim($cmd) . "\n";
+    }
 }
 
 function isAdmin(){
-	global $channel;
-	if(array_search($this->sendnick, $this->admins) !== FALSE){
-		return TRUE;
-	} else {
-		$this->send("PRIVMSG $this->target :$this->sendnick: sorry, you don't have access to that command.");
-		return FALSE;
-	}
+    global $channel;
+    if(array_search($this->sendnick, $this->admins) !== FALSE){
+        return TRUE;
+    } else {
+        $this->send("PRIVMSG $this->target :$this->sendnick: sorry, you don't have access to that command.");
+        return FALSE;
+    }
 }
 
 function addLoopItem($ev){
-	$this->loop[] = $ev;
+    $this->loop[] = $ev;
 }
 
 function deleteHook($com){
